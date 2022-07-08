@@ -1,10 +1,13 @@
 package ru.yandex.practicum.filmorate.controllers;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.UserValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 
+import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +19,7 @@ public class UserController {
     private List<User> users = new ArrayList<>();
 
     @PostMapping
-    public User postUser(@RequestBody User user) {
+    public User postUser(@Valid @RequestBody User user) {
         log.info("POST /users: начало обработки эндпоинта");
         User tempUser = checkUser(user);
         log.info("POST /users: успешная проверка ввода");
@@ -32,7 +35,7 @@ public class UserController {
     }
 
     @PutMapping
-    public User changeUser(@RequestBody User newUser) {
+    public User changeUser(@Valid @RequestBody User newUser) {
         log.info("PUT /users: начало обработки эндпоинта");
         boolean hasUser = false;
         User tempUser = newUser;
@@ -58,6 +61,14 @@ public class UserController {
         return tempUser;
     }
 
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseBody
+    public void UserValidationFailure(MethodArgumentNotValidException exception) {
+
+    }
+
+    @Deprecated
     public User checkUser(User user) {
         log.info("начало проверки ввода");
         if (user.getId() < 0) {

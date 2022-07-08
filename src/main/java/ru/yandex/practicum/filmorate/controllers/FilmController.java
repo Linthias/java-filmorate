@@ -1,10 +1,13 @@
 package ru.yandex.practicum.filmorate.controllers;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.FilmValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
+import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +19,7 @@ public class FilmController {
     private List<Film> films = new ArrayList<>();
 
     @PostMapping
-    public Film postFilm(@RequestBody Film film) {
+    public Film postFilm(@Valid @RequestBody Film film) {
         log.info("POST /films: начало обработки эндпоинта");
         checkFilm(film);
         log.info("POST /films: успешная проверка ввода");
@@ -32,7 +35,7 @@ public class FilmController {
     }
 
     @PutMapping
-    public Film changeFilm(@RequestBody Film newFilm) {
+    public Film changeFilm(@Valid @RequestBody Film newFilm) {
         log.info("PUT /films: начало обработки эндпоинта");
         boolean hasFilm = false;
         for (Film film : films) {
@@ -57,6 +60,14 @@ public class FilmController {
         return newFilm;
     }
 
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseBody
+    public void FilmValidationFailure(MethodArgumentNotValidException exception) {
+
+    }
+
+    @Deprecated
     public void checkFilm(Film film) {
         log.info("начало проверки ввода");
         if (film.getId() < 0) {
@@ -75,7 +86,7 @@ public class FilmController {
             log.warn("неверная дата релиза");
             throw new FilmValidationException("Film has wrong release date");
         }
-        if (film.getDuration() < 0) {
+        if (film.getDuration() < 1) {
             log.warn("отрицательная продолжительность");
             throw new FilmValidationException("Film has negative duration");
         }

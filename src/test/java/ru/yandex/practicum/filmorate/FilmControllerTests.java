@@ -72,8 +72,6 @@ public class FilmControllerTests {
                         .content(body))
                 .andExpect(MockMvcResultMatchers.status().is5xxServerError())
                 .andReturn();
-        assertEquals("Film has wrong id", response.getResolvedException().getMessage(),
-                "wrong exception message");
     }
 
     @Test
@@ -86,8 +84,6 @@ public class FilmControllerTests {
                          .content(body))
                  .andExpect(MockMvcResultMatchers.status().is5xxServerError())
                  .andReturn();
-         assertEquals("Film has empty name", response.getResolvedException().getMessage(),
-                 "wrong exception message");
     }
 
     @Test
@@ -118,8 +114,6 @@ public class FilmControllerTests {
                         .content(body))
                 .andExpect(MockMvcResultMatchers.status().is5xxServerError())
                 .andReturn();
-        assertEquals("Film has too long description", response.getResolvedException().getMessage(),
-                "wrong exception message");
     }
 
     @Test
@@ -146,7 +140,5 @@ public class FilmControllerTests {
                         .content(body))
                 .andExpect(MockMvcResultMatchers.status().is5xxServerError())
                 .andReturn();
-        assertEquals("Film has negative duration", response.getResolvedException().getMessage(),
-                "wrong exception message");
     }
 }

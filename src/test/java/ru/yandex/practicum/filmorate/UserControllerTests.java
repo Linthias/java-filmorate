@@ -71,8 +71,6 @@ public class UserControllerTests {
                         .content(body))
                 .andExpect(MockMvcResultMatchers.status().is5xxServerError())
                 .andReturn();
-        assertEquals("User has wrong id", response.getResolvedException().getMessage(),
-                "wrong exception message");
     }
 
     @Test
@@ -85,8 +83,6 @@ public class UserControllerTests {
                         .content(body))
                 .andExpect(MockMvcResultMatchers.status().is5xxServerError())
                 .andReturn();
-        assertEquals("User has wrong email", response.getResolvedException().getMessage(),
-                "wrong exception message");
     }
 
     @Test
@@ -99,8 +95,6 @@ public class UserControllerTests {
                         .content(body))
                 .andExpect(MockMvcResultMatchers.status().is5xxServerError())
                 .andReturn();
-        assertEquals("User has wrong email", response.getResolvedException().getMessage(),
-                "wrong exception message");
     }
 
     @Test
@@ -113,8 +107,6 @@ public class UserControllerTests {
                         .content(body))
                 .andExpect(MockMvcResultMatchers.status().is5xxServerError())
                 .andReturn();
-        assertEquals("User has wrong login", response.getResolvedException().getMessage(),
-                "wrong exception message");
     }
 
     @Test
@@ -127,8 +119,6 @@ public class UserControllerTests {
                         .content(body))
                 .andExpect(MockMvcResultMatchers.status().is5xxServerError())
                 .andReturn();
-        assertEquals("User has wrong login", response.getResolvedException().getMessage(),
-                "wrong exception message");
     }
 
     @Test

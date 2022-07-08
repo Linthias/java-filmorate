@@ -3,16 +3,28 @@ package ru.yandex.practicum.filmorate.model;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import javax.validation.constraints.*;
 import java.time.LocalDate;
 
 @Data
 public class User {
     @EqualsAndHashCode.Exclude
+    @Min(1)
     private int id;
 
+    @NotNull
+    @NotBlank
+    @Email
     private String email;
+
+    @NotNull
+    @NotBlank
+    @Pattern(regexp = "^\\S*$")
     private String login;
+
     private String name;
+
+    @NotNull
     private LocalDate birthday;
 
     public User() {
