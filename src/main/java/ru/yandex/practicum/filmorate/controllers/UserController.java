@@ -20,9 +20,7 @@ public class UserController {
 
     @PostMapping
     public User postUser(@Valid @RequestBody User user) {
-        log.info("POST /users: начало обработки эндпоинта");
         User tempUser = checkUser(user);
-        log.info("POST /users: успешная проверка ввода");
         users.add(tempUser);
         log.info("POST /users: добавлен новый объект");
         return tempUser;
@@ -30,20 +28,17 @@ public class UserController {
 
     @GetMapping
     public List<User> getUsers() {
-        log.info("GET /users: начало обработки эндпоинта");
+        log.info("GET /users: возвращен список пользователей");
         return users;
     }
 
     @PutMapping
     public User changeUser(@Valid @RequestBody User newUser) {
-        log.info("PUT /users: начало обработки эндпоинта");
         boolean hasUser = false;
         User tempUser = newUser;
         for (User user : users) {
             if (user.getId() == newUser.getId()) {
-                log.info("PUT /users: найден объект для изменения");
                 tempUser = checkUser(newUser);
-                log.info("PUT /users: успешная проверка ввода");
                 users.remove(user);
                 users.add(tempUser);
                 hasUser = true;
@@ -52,9 +47,7 @@ public class UserController {
             }
         }
         if (!hasUser) {
-            log.info("PUT /users: объект не найден");
             tempUser = checkUser(newUser);
-            log.info("PUT /users: успешная проверка ввода");
             users.add(tempUser);
             log.info("PUT /users: добавлен новый объект");
         }

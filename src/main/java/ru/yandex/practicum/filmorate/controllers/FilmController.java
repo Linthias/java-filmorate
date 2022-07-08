@@ -20,9 +20,7 @@ public class FilmController {
 
     @PostMapping
     public Film postFilm(@Valid @RequestBody Film film) {
-        log.info("POST /films: начало обработки эндпоинта");
         checkFilm(film);
-        log.info("POST /films: успешная проверка ввода");
         films.add(film);
         log.info("POST /films: добавлен новый объект");
         return film;
@@ -30,19 +28,16 @@ public class FilmController {
 
     @GetMapping
     public List<Film> getFilms() {
-        log.info("GET /films: начало обработки эндпоинта");
+        log.info("GET /films: возвращен список фильмов");
         return films;
     }
 
     @PutMapping
     public Film changeFilm(@Valid @RequestBody Film newFilm) {
-        log.info("PUT /films: начало обработки эндпоинта");
         boolean hasFilm = false;
         for (Film film : films) {
             if (film.getId() == newFilm.getId()) {
-                log.info("PUT /films: найден объект для изменения");
                 checkFilm(newFilm);
-                log.info("PUT /films: успешная проверка ввода");
                 films.remove(film);
                 films.add(newFilm);
                 hasFilm = true;
@@ -51,9 +46,7 @@ public class FilmController {
             }
         }
         if (!hasFilm) {
-            log.info("PUT /films: объект не найден");
             checkFilm(newFilm);
-            log.info("PUT /films: успешная проверка ввода");
             films.add(newFilm);
             log.info("PUT /films: добавлен новый объект");
         }
