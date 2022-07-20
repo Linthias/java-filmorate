@@ -1,27 +1,41 @@
 package ru.yandex.practicum.filmorate.controllers;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.FilmValidationException;
+import ru.yandex.practicum.filmorate.exceptions.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
+
+/*
+Контроллер запросов к сервису фильмов.
+ */
 
 @Slf4j
 @RestController
 @RequestMapping("/films")
 public class FilmController {
-    private List<Film> films = new ArrayList<>();
+    private FilmService service;
+
+    @Autowired
+    public FilmController(FilmService service) {
+        this.service = service;
+    }
 
     @PostMapping
     public Film postFilm(@Valid @RequestBody Film film) {
-        checkFilm(film);
-        films.add(film);
+        if (film.getReleaseDate().isBefore(LocalDate.of(1895,12,28)))
+            throw new FilmValidationException("Film has wrong release date");
+
+        service.getFilmStorage().addFilm(film);
+
         log.info("POST /films: добавлен новый объект");
         return film;
     }
@@ -29,59 +43,72 @@ public class FilmController {
     @GetMapping
     public List<Film> getFilms() {
         log.info("GET /films: возвращен список фильмов");
-        return films;
+        return service.getFilmStorage().getFilms();
+    }
+
+    @GetMapping("/{id}")
+    public Film getFilmById(@PathVariable int id) {
+        if (id < 1 || id > service.getFilmStorage().getFilms().size())
+            throw new ObjectNotFoundException("bad film id: " + id);
+
+        log.info("GET /films/" + id + ": возвращен фильм");
+        return service.getFilmStorage().getFilms().get(id - 1);
+    }
+
+    @GetMapping("/popular")
+    public List<Film> getTopFilms(@RequestParam(required = false) Integer count) {
+        // на случай, если пользователь не указал параметр
+        if (count == null)
+            count = 0;
+
+        log.info("GET /films/popular: возвращен топ фильмов");
+        return service.getTopFilms(count);
     }
 
     @PutMapping
     public Film changeFilm(@Valid @RequestBody Film newFilm) {
-        boolean hasFilm = false;
-        for (Film film : films) {
-            if (film.getId() == newFilm.getId()) {
-                checkFilm(newFilm);
-                films.remove(film);
-                films.add(newFilm);
-                hasFilm = true;
-                log.info("PUT /films: объект изменен");
-                break;
-            }
-        }
-        if (!hasFilm) {
-            checkFilm(newFilm);
-            films.add(newFilm);
+        if (newFilm.getReleaseDate().isBefore(LocalDate.of(1895,12,28)))
+            throw new FilmValidationException("Film has wrong release date");
+        if (newFilm.getId() < 1 || newFilm.getId() > service.getFilmStorage().getFilms().size())
+            throw new ObjectNotFoundException("bad film id: " + newFilm.getId());
+
+        if (!service.getFilmStorage().changeFilm(newFilm)) {
+            service.getFilmStorage().addFilm(newFilm);
             log.info("PUT /films: добавлен новый объект");
         }
+
+        log.info("PUT /films: объект изменен/добавлен");
         return newFilm;
     }
 
+    @PutMapping("/{id}/like/{userId}")
+    public Film addLike(@PathVariable int id, @PathVariable int userId) {
+        service.addLike(userId, id);
+
+        log.info("PUT /films/" + id + "/like/" + userId
+                + ": количество лайков: " + service.getFilmStorage().getFilms().get(id - 1).getLikes().size());
+        return service.getFilmStorage().getFilms().get(id - 1);
+    }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    public Film removeLike(@PathVariable int id, @PathVariable int userId) {
+        service.deleteLike(userId, id);
+
+        log.info("DELETE /films/" + id + "/like/" + userId
+                + ": количество лайков: " + service.getFilmStorage().getFilms().get(id - 1).getLikes().size());
+        return service.getFilmStorage().getFilms().get(id - 1);
+    }
+
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ResponseBody
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public void FilmValidationFailure(MethodArgumentNotValidException exception) {
 
     }
 
-    @Deprecated
-    public void checkFilm(Film film) {
-        log.info("начало проверки ввода");
-        if (film.getId() < 0) {
-            log.warn("неверный идентификатор");
-            throw new FilmValidationException("Film has wrong id");
-        }
-        if (film.getName().equals("") || film.getName() == null) {
-            log.warn("пустое имя");
-            throw new FilmValidationException("Film has empty name");
-        }
-        if (film.getDescription().length() > 200) {
-            log.warn("слишком длинное описание");
-            throw new FilmValidationException("Film has too long description");
-        }
-        if (film.getReleaseDate().isBefore(LocalDate.of(1895,12,28))) {
-            log.warn("неверная дата релиза");
-            throw new FilmValidationException("Film has wrong release date");
-        }
-        if (film.getDuration() < 1) {
-            log.warn("отрицательная продолжительность");
-            throw new FilmValidationException("Film has negative duration");
-        }
+    @ExceptionHandler(ObjectNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public void FilmNotFound(ObjectNotFoundException exception) {
+
     }
 }
