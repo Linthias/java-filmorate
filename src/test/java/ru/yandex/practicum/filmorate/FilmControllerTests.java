@@ -6,21 +6,18 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import ru.yandex.practicum.filmorate.controllers.FilmController;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-//@WebMvcTest(controllers = FilmController.class)
 @SpringBootTest
 @AutoConfigureMockMvc
 public class FilmControllerTests {
@@ -38,6 +35,7 @@ public class FilmControllerTests {
                 .create();
         film = new Film("Star Wars. Episode I: The Phantom Menace", "desc1",
                 LocalDate.of(1999, 5, 19), 133);
+        film.setId(2);
     }
 
     @Test
@@ -74,7 +72,7 @@ public class FilmControllerTests {
         response = mockMvc.perform(MockMvcRequestBuilders.post("/films")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
-                .andExpect(MockMvcResultMatchers.status().is5xxServerError())
+                .andExpect(MockMvcResultMatchers.status().is2xxSuccessful())
                 .andReturn();
     }
 
@@ -86,7 +84,7 @@ public class FilmControllerTests {
          response = mockMvc.perform(MockMvcRequestBuilders.post("/films")
                          .contentType(MediaType.APPLICATION_JSON)
                          .content(body))
-                 .andExpect(MockMvcResultMatchers.status().is5xxServerError())
+                 .andExpect(MockMvcResultMatchers.status().is4xxClientError())
                  .andReturn();
     }
 
@@ -116,7 +114,7 @@ public class FilmControllerTests {
         response = mockMvc.perform(MockMvcRequestBuilders.post("/films")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
-                .andExpect(MockMvcResultMatchers.status().is5xxServerError())
+                .andExpect(MockMvcResultMatchers.status().is4xxClientError())
                 .andReturn();
     }
 
@@ -128,10 +126,8 @@ public class FilmControllerTests {
         response = mockMvc.perform(MockMvcRequestBuilders.post("/films")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
-                .andExpect(MockMvcResultMatchers.status().is5xxServerError())
+                .andExpect(MockMvcResultMatchers.status().is4xxClientError())
                 .andReturn();
-        assertEquals("Film has wrong release date", response.getResolvedException().getMessage(),
-                "wrong exception message");
     }
 
     @Test
@@ -142,7 +138,7 @@ public class FilmControllerTests {
         response = mockMvc.perform(MockMvcRequestBuilders.post("/films")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
-                .andExpect(MockMvcResultMatchers.status().is5xxServerError())
+                .andExpect(MockMvcResultMatchers.status().is4xxClientError())
                 .andReturn();
     }
 }
