@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface UserStorage {
 
-    User addUser(User user);
-    List<User> getUsers();
-    boolean changeUser(User newUser);
+    User add(User user);
+    List<User> getAll();
+    boolean change(User newUser);
 }

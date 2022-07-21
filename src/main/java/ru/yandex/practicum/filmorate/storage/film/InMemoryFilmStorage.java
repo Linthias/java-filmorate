@@ -22,18 +22,18 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     @Override
-    public void addFilm(Film film) {
+    public void add(Film film) {
         film.setId(films.size() + 1);
         films.add(film);
     }
 
     @Override
-    public List<Film> getFilms() {
+    public List<Film> getAll() {
         return films;
     }
 
     @Override
-    public boolean changeFilm(Film newFilm) {
+    public boolean change(Film newFilm) {
         boolean hasFilm = false;
 
         for (Film film : films) {

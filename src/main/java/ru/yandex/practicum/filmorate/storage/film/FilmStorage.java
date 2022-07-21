@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface FilmStorage {
 
-    void addFilm(Film film);
-    List<Film> getFilms();
-    boolean changeFilm(Film newFilm);
+    void add(Film film);
+    List<Film> getAll();
+    boolean change(Film newFilm);
 }

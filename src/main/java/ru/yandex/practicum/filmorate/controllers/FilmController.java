@@ -30,50 +30,50 @@ public class FilmController {
     }
 
     @PostMapping
-    public Film postFilm(@Valid @RequestBody Film film) {
+    public Film post(@Valid @RequestBody Film film) {
         if (film.getReleaseDate().isBefore(LocalDate.of(1895,12,28)))
             throw new FilmValidationException("Film has wrong release date");
 
-        service.getFilmStorage().addFilm(film);
+        service.getFilmStorage().add(film);
 
         log.info("POST /films: добавлен новый объект");
         return film;
     }
 
     @GetMapping
-    public List<Film> getFilms() {
+    public List<Film> getAll() {
         log.info("GET /films: возвращен список фильмов");
-        return service.getFilmStorage().getFilms();
+        return service.getFilmStorage().getAll();
     }
 
     @GetMapping("/{id}")
-    public Film getFilmById(@PathVariable int id) {
-        if (id < 1 || id > service.getFilmStorage().getFilms().size())
+    public Film getById(@PathVariable int id) {
+        if (id < 1 || id > service.getFilmStorage().getAll().size())
             throw new ObjectNotFoundException("bad film id: " + id);
 
         log.info("GET /films/" + id + ": возвращен фильм");
-        return service.getFilmStorage().getFilms().get(id - 1);
+        return service.getFilmStorage().getAll().get(id - 1);
     }
 
     @GetMapping("/popular")
-    public List<Film> getTopFilms(@RequestParam(required = false) Integer count) {
+    public List<Film> getPopularTop(@RequestParam(required = false) Integer count) {
         // на случай, если пользователь не указал параметр
         if (count == null)
             count = 0;
 
         log.info("GET /films/popular: возвращен топ фильмов");
-        return service.getTopFilms(count);
+        return service.getPopularTop(count);
     }
 
     @PutMapping
-    public Film changeFilm(@Valid @RequestBody Film newFilm) {
+    public Film change(@Valid @RequestBody Film newFilm) {
         if (newFilm.getReleaseDate().isBefore(LocalDate.of(1895,12,28)))
             throw new FilmValidationException("Film has wrong release date");
-        if (newFilm.getId() < 1 || newFilm.getId() > service.getFilmStorage().getFilms().size())
+        if (newFilm.getId() < 1 || newFilm.getId() > service.getFilmStorage().getAll().size())
             throw new ObjectNotFoundException("bad film id: " + newFilm.getId());
 
-        if (!service.getFilmStorage().changeFilm(newFilm)) {
-            service.getFilmStorage().addFilm(newFilm);
+        if (!service.getFilmStorage().change(newFilm)) {
+            service.getFilmStorage().add(newFilm);
             log.info("PUT /films: добавлен новый объект");
         }
 
@@ -86,8 +86,8 @@ public class FilmController {
         service.addLike(userId, id);
 
         log.info("PUT /films/" + id + "/like/" + userId
-                + ": количество лайков: " + service.getFilmStorage().getFilms().get(id - 1).getLikes().size());
-        return service.getFilmStorage().getFilms().get(id - 1);
+                + ": количество лайков: " + service.getFilmStorage().getAll().get(id - 1).getLikes().size());
+        return service.getFilmStorage().getAll().get(id - 1);
     }
 
     @DeleteMapping("/{id}/like/{userId}")
@@ -95,8 +95,8 @@ public class FilmController {
         service.deleteLike(userId, id);
 
         log.info("DELETE /films/" + id + "/like/" + userId
-                + ": количество лайков: " + service.getFilmStorage().getFilms().get(id - 1).getLikes().size());
-        return service.getFilmStorage().getFilms().get(id - 1);
+                + ": количество лайков: " + service.getFilmStorage().getAll().get(id - 1).getLikes().size());
+        return service.getFilmStorage().getAll().get(id - 1);
     }
 
 

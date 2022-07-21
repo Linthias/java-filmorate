@@ -6,12 +6,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.ObjectNotFoundException;
-import ru.yandex.practicum.filmorate.exceptions.UserValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
 import java.util.List;
 
 /*
@@ -30,57 +28,47 @@ public class UserController {
     }
 
     @PostMapping
-    public User postUser(@Valid @RequestBody User user) {
-        User tempUser = service.getUserStorage().addUser(user);
+    public User post(@Valid @RequestBody User user) {
+
+        user = service.getUserStorage().add(user);
 
         log.info("POST /users: добавлен новый объект");
-        return tempUser;
+        return user;
     }
 
     @GetMapping("/{id}")
-    public User getUserById(@PathVariable int id) {
-        if (id < 1 || id > service.getUserStorage().getUsers().size())
+    public User getById(@PathVariable int id) {
+
+        if (id < 1 || id > service.getUserStorage().getAll().size())
             throw new ObjectNotFoundException("bad user id: " + id);
 
-        User response = null;
-
-        for (User user : service.getUserStorage().getUsers()) {
-            if (user.getId() == id) {
-                response = user;
-                break;
-            }
-        }
-
         log.info("GET /users/" + id + ": получен объект");
-        return response;
+        return service.getUserStorage().getAll().get(id - 1);
     }
 
     @GetMapping
-    public List<User> getUsers() {
+    public List<User> getAll() {
+
         log.info("GET /users: возвращен список пользователей");
-        return service.getUserStorage().getUsers();
+        return service.getUserStorage().getAll();
     }
 
     @GetMapping("/{id}/friends")
-    public List<User> getUserFriends(@PathVariable int id) {
-        if (id < 1 || id > service.getUserStorage().getUsers().size())
+    public List<User> getFriends(@PathVariable int id) {
+
+        if (id < 1 || id > service.getUserStorage().getAll().size())
             throw new ObjectNotFoundException("bad user id: " + id);
 
-        List<User> response = new ArrayList<>();
-
-        for (Integer friendId : service.getUserStorage().getUsers().get(id - 1).getFriends()) {
-            response.add(service.getUserStorage().getUsers().get(friendId - 1));
-        }
-
         log.info("GET /users/" + id + "/friends: возвращен список друзей");
-        return response;
+        return service.getFriends(id);
     }
 
     @GetMapping("/{id}/friends/common/{otherId}")
-    public List<User> getUserCommonFriends(@PathVariable int id, @PathVariable int otherId) {
-        if (id < 1 || id > service.getUserStorage().getUsers().size())
+    public List<User> getCommonFriends(@PathVariable int id, @PathVariable int otherId) {
+
+        if (id < 1 || id > service.getUserStorage().getAll().size())
             throw new ObjectNotFoundException("bad user id: " + id);
-        if (otherId < 1 || otherId > service.getUserStorage().getUsers().size())
+        if (otherId < 1 || otherId > service.getUserStorage().getAll().size())
             throw new ObjectNotFoundException("bad user id: " + otherId);
 
         log.info("GET /users/" + id + "/friends/common/" + otherId + ": возвращен список общих друзей");
@@ -88,12 +76,13 @@ public class UserController {
     }
 
     @PutMapping
-    public User changeUser(@Valid @RequestBody User newUser) {
-        if (newUser.getId() < 1 || newUser.getId() > service.getUserStorage().getUsers().size())
+    public User change(@Valid @RequestBody User newUser) {
+
+        if (newUser.getId() < 1 || newUser.getId() > service.getUserStorage().getAll().size())
             throw new ObjectNotFoundException("bad user id: " + newUser.getId());
 
-        if (!service.getUserStorage().changeUser(newUser)) {
-            newUser = service.getUserStorage().addUser(newUser);
+        if (!service.getUserStorage().change(newUser)) {
+            newUser = service.getUserStorage().add(newUser);
             log.info("PUT /users: добавлен новый объект");
         }
 
@@ -103,9 +92,10 @@ public class UserController {
 
     @PutMapping("/{id}/friends/{friendId}")
     public void addFriend(@PathVariable int id, @PathVariable int friendId) {
-        if (id < 1 || id > service.getUserStorage().getUsers().size())
+
+        if (id < 1 || id > service.getUserStorage().getAll().size())
             throw new ObjectNotFoundException("bad user id: " + id);
-        if (friendId < 1 || friendId > service.getUserStorage().getUsers().size())
+        if (friendId < 1 || friendId > service.getUserStorage().getAll().size())
             throw new ObjectNotFoundException("bad user id: " + friendId);
 
         service.addFriend(id, friendId);
@@ -113,10 +103,11 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
-    public void deleteFriend(@PathVariable int id, @PathVariable int friendId) {
-        if (id < 1 || id > service.getUserStorage().getUsers().size())
+    public void removeFriend(@PathVariable int id, @PathVariable int friendId) {
+
+        if (id < 1 || id > service.getUserStorage().getAll().size())
             throw new ObjectNotFoundException("bad user id: " + id);
-        if (friendId < 1 || friendId > service.getUserStorage().getUsers().size())
+        if (friendId < 1 || friendId > service.getUserStorage().getAll().size())
             throw new ObjectNotFoundException("bad user id: " + friendId);
 
         service.deleteFriend(id, friendId);

@@ -22,7 +22,7 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User addUser(User user) {
+    public User add(User user) {
         // если имя пустое, то им становится логин
         if (user.getName() == null || user.getName().equals(""))
             user.setName(user.getLogin());
@@ -34,12 +34,12 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public List<User> getUsers() {
+    public List<User> getAll() {
         return users;
     }
 
     @Override
-    public boolean changeUser(User newUser) {
+    public boolean change(User newUser) {
         boolean hasUser = false;
 
         if (newUser.getName() == null || newUser.getName().equals(""))

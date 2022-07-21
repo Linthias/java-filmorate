@@ -31,28 +31,28 @@ public class FilmService {
     }
 
     public void addLike(int userId, int filmId) {
-        if (filmId < 1 || filmId > filmStorage.getFilms().size())
+        if (filmId < 1 || filmId > filmStorage.getAll().size())
             throw new ObjectNotFoundException("bad film id: " + filmId);
         if (userId < 1)
             throw new ObjectNotFoundException("bad user id: " + userId);
 
-        filmStorage.getFilms().get(filmId-1).getLikes().add(userId);
+        filmStorage.getAll().get(filmId-1).getLikes().add(userId);
     }
 
     public void deleteLike(int userId, int filmId) {
-        if (filmId < 1 || filmId > filmStorage.getFilms().size())
+        if (filmId < 1 || filmId > filmStorage.getAll().size())
             throw new ObjectNotFoundException("bad film id: " + filmId);
-        if (filmStorage.getFilms().get(filmId-1).getLikes().contains(userId)) {
-            filmStorage.getFilms().get(filmId-1).getLikes().remove(userId);
+        if (filmStorage.getAll().get(filmId-1).getLikes().contains(userId)) {
+            filmStorage.getAll().get(filmId-1).getLikes().remove(userId);
         } else
             throw new ObjectNotFoundException("bad user id: " + userId);
     }
 
-    public List<Film> getTopFilms(int topSize) {
-        if (topSize < 1 || topSize > filmStorage.getFilms().size())
+    public List<Film> getPopularTop(int topSize) {
+        if (topSize < 1 || topSize > filmStorage.getAll().size())
             topSize = 10;
 
-        List<Film> result = new ArrayList<>(filmStorage.getFilms());
+        List<Film> result = new ArrayList<>(filmStorage.getAll());
 
         return result.stream()
                 .sorted(new FilmPopularityComparator().reversed())

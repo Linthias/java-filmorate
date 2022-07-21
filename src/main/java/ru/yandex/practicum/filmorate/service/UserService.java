@@ -17,6 +17,7 @@ import java.util.Set;
 Реализовано:
 - добавление друга
 - удаление друга
+- вывод списка друзей
 - вывод списка общих друзей
  */
 
@@ -26,30 +27,39 @@ public class UserService {
     private UserStorage userStorage;
 
     @Autowired
-    public UserService(UserStorage users) {
-        this.userStorage = users;
+    public UserService(UserStorage userStorage) {
+        this.userStorage = userStorage;
     }
 
     public void addFriend(int userId, int friendId) {
-        userStorage.getUsers().get(userId - 1).getFriends().add(friendId);
-        userStorage.getUsers().get(friendId - 1).getFriends().add(userId);
+        userStorage.getAll().get(userId - 1).getFriends().add(friendId);
+        userStorage.getAll().get(friendId - 1).getFriends().add(userId);
     }
 
     public void deleteFriend(int userId, int friendId) {
-        if (userStorage.getUsers().get(userId - 1).getFriends().contains(friendId)) {
-            userStorage.getUsers().get(userId - 1).getFriends().remove(friendId);
-            userStorage.getUsers().get(friendId - 1).getFriends().remove(userId);
+        if (userStorage.getAll().get(userId - 1).getFriends().contains(friendId)) {
+            userStorage.getAll().get(userId - 1).getFriends().remove(friendId);
+            userStorage.getAll().get(friendId - 1).getFriends().remove(userId);
         } else
             throw new ObjectNotFoundException("bad user id: " + friendId);
     }
 
+    public List<User> getFriends(int id) {
+        List<User> friends = new ArrayList<>();
+
+        for (Integer friendId : userStorage.getAll().get(id - 1).getFriends()) {
+            friends.add(userStorage.getAll().get(friendId - 1));
+        }
+        return friends;
+    }
+    
     public List<User> getCommonFriends(int id, int otherId) {
-        Set<Integer> commonIds = new HashSet<>(userStorage.getUsers().get(id - 1).getFriends());
+        Set<Integer> commonIds = new HashSet<>(userStorage.getAll().get(id - 1).getFriends());
         List<User> commonFriends = new ArrayList<>();
 
-        commonIds.retainAll(userStorage.getUsers().get(otherId - 1).getFriends());
+        commonIds.retainAll(userStorage.getAll().get(otherId - 1).getFriends());
         for (Integer friendId : commonIds) {
-            commonFriends.add(userStorage.getUsers().get(friendId - 1));
+            commonFriends.add(userStorage.getAll().get(friendId - 1));
         }
 
         return commonFriends;
