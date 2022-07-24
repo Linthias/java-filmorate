@@ -5,20 +5,21 @@ import com.google.gson.GsonBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import ru.yandex.practicum.filmorate.controllers.UserController;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@WebMvcTest(controllers = UserController.class)
+@SpringBootTest
+@AutoConfigureMockMvc
 public class UserControllerTests {
     private Gson gson;
     private MvcResult response;
@@ -33,10 +34,12 @@ public class UserControllerTests {
                 .registerTypeAdapter(LocalDate.class, new GsonLocalDateAdapter())
                 .create();
         user = new User("smth@yandex.ru", "login", "Ivan", LocalDate.of(1995, 6, 18));
+        user.setId(2);
     }
 
     @Test
     public void positiveTest() throws Exception {
+        user.setId(3);
         String body = gson.toJson(user);
 
         response = mockMvc.perform(MockMvcRequestBuilders.post("/users")
@@ -69,7 +72,7 @@ public class UserControllerTests {
         response = mockMvc.perform(MockMvcRequestBuilders.post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
-                .andExpect(MockMvcResultMatchers.status().is5xxServerError())
+                .andExpect(MockMvcResultMatchers.status().is2xxSuccessful())
                 .andReturn();
     }
 
@@ -81,7 +84,7 @@ public class UserControllerTests {
         response = mockMvc.perform(MockMvcRequestBuilders.post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
-                .andExpect(MockMvcResultMatchers.status().is5xxServerError())
+                .andExpect(MockMvcResultMatchers.status().is4xxClientError())
                 .andReturn();
     }
 
@@ -93,7 +96,7 @@ public class UserControllerTests {
         response = mockMvc.perform(MockMvcRequestBuilders.post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
-                .andExpect(MockMvcResultMatchers.status().is5xxServerError())
+                .andExpect(MockMvcResultMatchers.status().is4xxClientError())
                 .andReturn();
     }
 
@@ -105,7 +108,7 @@ public class UserControllerTests {
         response = mockMvc.perform(MockMvcRequestBuilders.post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
-                .andExpect(MockMvcResultMatchers.status().is5xxServerError())
+                .andExpect(MockMvcResultMatchers.status().is4xxClientError())
                 .andReturn();
     }
 
@@ -117,7 +120,7 @@ public class UserControllerTests {
         response = mockMvc.perform(MockMvcRequestBuilders.post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
-                .andExpect(MockMvcResultMatchers.status().is5xxServerError())
+                .andExpect(MockMvcResultMatchers.status().is4xxClientError())
                 .andReturn();
     }
 
@@ -144,9 +147,7 @@ public class UserControllerTests {
         response = mockMvc.perform(MockMvcRequestBuilders.post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
-                .andExpect(MockMvcResultMatchers.status().is5xxServerError())
+                .andExpect(MockMvcResultMatchers.status().is4xxClientError())
                 .andReturn();
-        assertEquals("User has wrong birthday", response.getResolvedException().getMessage(),
-                "wrong exception message");
     }
 }

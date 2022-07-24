@@ -1,90 +1,129 @@
 package ru.yandex.practicum.filmorate.controllers;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exceptions.UserValidationException;
+import ru.yandex.practicum.filmorate.exceptions.ObjectNotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
+
+/*
+Обработчик запросов к пользовательскому сервису.
+ */
 
 @Slf4j
 @RestController
 @RequestMapping("/users")
 public class UserController {
-    private List<User> users = new ArrayList<>();
+    private UserService service;
+
+    @Autowired
+    public UserController(UserService service) {
+        this.service = service;
+    }
 
     @PostMapping
-    public User postUser(@Valid @RequestBody User user) {
-        User tempUser = checkUser(user);
-        users.add(tempUser);
+    public User post(@Valid @RequestBody User user) {
+
+        user = service.getUserStorage().add(user);
+
         log.info("POST /users: добавлен новый объект");
-        return tempUser;
+        return user;
+    }
+
+    @GetMapping("/{id}")
+    public User getById(@PathVariable int id) {
+
+        if (id < 1 || id > service.getUserStorage().getAll().size())
+            throw new ObjectNotFoundException("bad user id: " + id);
+
+        log.info("GET /users/" + id + ": получен объект");
+        return service.getUserStorage().getAll().get(id - 1);
     }
 
     @GetMapping
-    public List<User> getUsers() {
+    public List<User> getAll() {
+
         log.info("GET /users: возвращен список пользователей");
-        return users;
+        return service.getUserStorage().getAll();
+    }
+
+    @GetMapping("/{id}/friends")
+    public List<User> getFriends(@PathVariable int id) {
+
+        if (id < 1 || id > service.getUserStorage().getAll().size())
+            throw new ObjectNotFoundException("bad user id: " + id);
+
+        log.info("GET /users/" + id + "/friends: возвращен список друзей");
+        return service.getFriends(id);
+    }
+
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public List<User> getCommonFriends(@PathVariable int id, @PathVariable int otherId) {
+
+        if (id < 1 || id > service.getUserStorage().getAll().size())
+            throw new ObjectNotFoundException("bad user id: " + id);
+        if (otherId < 1 || otherId > service.getUserStorage().getAll().size())
+            throw new ObjectNotFoundException("bad user id: " + otherId);
+
+        log.info("GET /users/" + id + "/friends/common/" + otherId + ": возвращен список общих друзей");
+        return service.getCommonFriends(id, otherId);
     }
 
     @PutMapping
-    public User changeUser(@Valid @RequestBody User newUser) {
-        boolean hasUser = false;
-        User tempUser = newUser;
-        for (User user : users) {
-            if (user.getId() == newUser.getId()) {
-                tempUser = checkUser(newUser);
-                users.remove(user);
-                users.add(tempUser);
-                hasUser = true;
-                log.info("PUT /users: объект изменен");
-                break;
-            }
-        }
-        if (!hasUser) {
-            tempUser = checkUser(newUser);
-            users.add(tempUser);
+    public User change(@Valid @RequestBody User newUser) {
+
+        if (newUser.getId() < 1 || newUser.getId() > service.getUserStorage().getAll().size())
+            throw new ObjectNotFoundException("bad user id: " + newUser.getId());
+
+        if (!service.getUserStorage().change(newUser)) {
+            newUser = service.getUserStorage().add(newUser);
             log.info("PUT /users: добавлен новый объект");
         }
-        return tempUser;
+
+        log.info("PUT /users: объект изменен/добавлен");
+        return newUser;
+    }
+
+    @PutMapping("/{id}/friends/{friendId}")
+    public void addFriend(@PathVariable int id, @PathVariable int friendId) {
+
+        if (id < 1 || id > service.getUserStorage().getAll().size())
+            throw new ObjectNotFoundException("bad user id: " + id);
+        if (friendId < 1 || friendId > service.getUserStorage().getAll().size())
+            throw new ObjectNotFoundException("bad user id: " + friendId);
+
+        service.addFriend(id, friendId);
+        log.info("PUT /users/" + id + "/friends/" + friendId + ": друг добавлен");
+    }
+
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public void removeFriend(@PathVariable int id, @PathVariable int friendId) {
+
+        if (id < 1 || id > service.getUserStorage().getAll().size())
+            throw new ObjectNotFoundException("bad user id: " + id);
+        if (friendId < 1 || friendId > service.getUserStorage().getAll().size())
+            throw new ObjectNotFoundException("bad user id: " + friendId);
+
+        service.deleteFriend(id, friendId);
+        log.info("DELETE /users/" + id + "/friends/" + friendId + ": друг удален");
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
     public void UserValidationFailure(MethodArgumentNotValidException exception) {
 
     }
 
-    @Deprecated
-    public User checkUser(User user) {
-        log.info("начало проверки ввода");
-        if (user.getId() < 0) {
-            log.warn("неверный идентификатор");
-            throw new UserValidationException("User has wrong id");
-        }
-        if (user.getEmail() == null || user.getEmail().equals("") || !user.getEmail().contains("@")) {
-            log.warn("неверный адрес почты");
-            throw new UserValidationException("User has wrong email");
-        }
-        if (user.getLogin() == null || user.getLogin().equals("") || user.getLogin().contains(" ")) {
-            log.warn("неверный логин");
-            throw new UserValidationException("User has wrong login");
-        }
-        if (user.getName() == null || user.getName().equals("")) {
-            log.warn("пустое имя");
-            user.setName(user.getLogin());
-            log.info("имя соответствует логину");
-        }
-        if (user.getBirthday().isAfter(LocalDate.now())) {
-            log.warn("неверная дата рождения");
-            throw new UserValidationException("User has wrong birthday");
-        }
-        return user;
+    @ExceptionHandler(ObjectNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public void UserNotFound(ObjectNotFoundException exception) {
+
     }
 }

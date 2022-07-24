@@ -5,11 +5,12 @@ import lombok.EqualsAndHashCode;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 public class User {
     @EqualsAndHashCode.Exclude
-    @Min(1)
     private int id;
 
     @NotNull
@@ -25,7 +26,10 @@ public class User {
     private String name;
 
     @NotNull
+    @Past
     private LocalDate birthday;
+
+    private Set<Integer> friends;
 
     public User() {
         this.email = "default@yandex.ru";
@@ -33,6 +37,7 @@ public class User {
         this.name = "default name";
         this.birthday = LocalDate.of(2022, 5, 15);
         this.id = 1;
+        this.friends = new HashSet<>();
     }
 
     public User(String email, String login, String name, LocalDate birthday) {
@@ -41,6 +46,7 @@ public class User {
         this.name = name;
         this.birthday = birthday;
         this.id = 1;
+        this.friends = new HashSet<>();
     }
 
     public User(int id, String email, String login, String name, LocalDate birthday) {
@@ -49,5 +55,6 @@ public class User {
         this.name = name;
         this.birthday = birthday;
         this.id = id;
+        this.friends = new HashSet<>();
     }
 }
